@@ -103,7 +103,9 @@ public class PluggableSchemaResolver implements EntityResolver {
 		this.schemaMappingsLocation = schemaMappingsLocation;
 	}
 
-
+	/***
+	 * 先把xsd文件下载到本地,在进行加载
+	 * **/
 	@Override
 	@Nullable
 	public InputSource resolveEntity(@Nullable String publicId, @Nullable String systemId) throws IOException {
@@ -113,12 +115,17 @@ public class PluggableSchemaResolver implements EntityResolver {
 		}
 
 		if (systemId != null) {
+			//从缓存中加载xsd文件
+			//判断缓存中是否有xsd文件
+			//缓存中的xsd文件都是从网络中加载
 			String resourceLocation = getSchemaMappings().get(systemId);
 			if (resourceLocation == null && systemId.startsWith("https:")) {
 				// Retrieve canonical http schema mapping even for https declaration
 				resourceLocation = getSchemaMappings().get("http:" + systemId.substring(6));
 			}
+			//如果缓存命中
 			if (resourceLocation != null) {
+				//从classpath路径中加载xsd文件
 				Resource resource = new ClassPathResource(resourceLocation, this.classLoader);
 				try {
 					InputSource source = new InputSource(resource.getInputStream());

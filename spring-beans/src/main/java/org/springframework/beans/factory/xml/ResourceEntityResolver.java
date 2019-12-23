@@ -74,9 +74,10 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 	@Nullable
 	public InputSource resolveEntity(@Nullable String publicId, @Nullable String systemId)
 			throws SAXException, IOException {
-
+		//调用父类方法获取xsd或者dtd,都是从本地的classpath路径下加载文件
 		InputSource source = super.resolveEntity(publicId, systemId);
 
+		//如果本地未能加载到xsd或者dtd文件
 		if (source == null && systemId != null) {
 			String resourcePath = null;
 			try {
@@ -84,6 +85,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 				String givenUrl = new URL(decodedSystemId).toString();
 				String systemRootUrl = new File("").toURI().toURL().toString();
 				// Try relative to resource base if currently in system root.
+				//保留相对路径
 				if (givenUrl.startsWith(systemRootUrl)) {
 					resourcePath = givenUrl.substring(systemRootUrl.length());
 				}
@@ -100,6 +102,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Trying to locate XML entity [" + systemId + "] as resource [" + resourcePath + "]");
 				}
+				//再次尝试从classpath路径下加载文件
 				Resource resource = this.resourceLoader.getResource(resourcePath);
 				source = new InputSource(resource.getInputStream());
 				source.setPublicId(publicId);
@@ -107,7 +110,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Found XML entity [" + systemId + "]: " + resource);
 				}
-			}
+			}//实在没有办法了,从网络上进行加载
 			else if (systemId.endsWith(DTD_SUFFIX) || systemId.endsWith(XSD_SUFFIX)) {
 				// External dtd/xsd lookup via https even for canonical http declaration
 				String url = systemId;
@@ -115,6 +118,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 					url = "https:" + url.substring(5);
 				}
 				try {
+					//通过url http加载资源,网络情况不好的情况下很容易挂
 					source = new InputSource(new URL(url).openStream());
 					source.setPublicId(publicId);
 					source.setSystemId(systemId);

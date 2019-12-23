@@ -90,6 +90,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 			this.resourceLoader = (ResourceLoader) this.registry;
 		}
 		else {
+			//路基匹配资源模式解析器
 			this.resourceLoader = new PathMatchingResourcePatternResolver();
 		}
 
@@ -98,6 +99,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 			this.environment = ((EnvironmentCapable) this.registry).getEnvironment();
 		}
 		else {
+			//标准环境
 			this.environment = new StandardEnvironment();
 		}
 	}
