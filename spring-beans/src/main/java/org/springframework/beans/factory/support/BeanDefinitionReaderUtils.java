@@ -61,9 +61,11 @@ public abstract class BeanDefinitionReaderUtils {
 		bd.setParentName(parentName);
 		if (className != null) {
 			if (classLoader != null) {
+				//加载类
 				bd.setBeanClass(ClassUtils.forName(className, classLoader));
 			}
 			else {
+				//如果class-loader为空则只记录类名
 				bd.setBeanClassName(className);
 			}
 		}
@@ -160,11 +162,14 @@ public abstract class BeanDefinitionReaderUtils {
 	public static void registerBeanDefinition(
 			BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry)
 			throws BeanDefinitionStoreException {
-
+		//注册bean
 		// Register bean definition under primary name.
+		//获取bean的名称
 		String beanName = definitionHolder.getBeanName();
+		//注册
 		registry.registerBeanDefinition(beanName, definitionHolder.getBeanDefinition());
 
+		//注册bean的所有别名
 		// Register aliases for bean name, if any.
 		String[] aliases = definitionHolder.getAliases();
 		if (aliases != null) {
