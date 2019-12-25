@@ -165,6 +165,12 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
+	 * singletonObjects:用于保存BeanName和创建bean实例之间的关系 beanName->bean
+	 * earlySingletonObjects:用于保存BeanName和创建bean实例之间的关系 beanName->bean
+	 * 						 不同点是,当bean放入到此集合中时,在bean创建的过程中就可以通
+	 * 						 过getBean方法来获取bean的引用,主要是用于解决循环依赖问题.
+	 * singletonFactories:用于保存beanName与bean工厂之间的关系
+	 * registeredSingletons:用来保存当前所有已注册的bean
 	 * Return the (raw) singleton object registered under the given name.
 	 * <p>Checks already instantiated singletons and also allows for an early
 	 * reference to a currently created singleton (resolving a circular reference).
@@ -174,15 +180,21 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+		//缓存中是否有bean
 		Object singletonObject = this.singletonObjects.get(beanName);
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			synchronized (this.singletonObjects) {
 				singletonObject = this.earlySingletonObjects.get(beanName);
 				if (singletonObject == null && allowEarlyReference) {
+					//缓存中无单利对象并允许前期引用
+					//获取单利工厂
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 					if (singletonFactory != null) {
+						//调用工厂获取对象
 						singletonObject = singletonFactory.getObject();
+						//记录对象到map
 						this.earlySingletonObjects.put(beanName, singletonObject);
+						//移除单利工厂
 						this.singletonFactories.remove(beanName);
 					}
 				}
