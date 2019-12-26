@@ -242,12 +242,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
 			@Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
 
-		//提取bean name
+		//提取bean name,bean name可能不是单纯的名称也可能是工厂的名称 例如&bean 就代表从名称为bean的工厂中获取bean
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
 		// Eagerly check singleton cache for manually registered singletons.
-		//获取缓存中的bean对应的单利工厂
+		//通过单利工厂获取bean
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -309,8 +309,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
 						}
+						//依赖注册
 						registerDependentBean(dep, beanName);
 						try {
+							//获取bean,循环获取依赖
 							getBean(dep);
 						}
 						catch (NoSuchBeanDefinitionException ex) {
@@ -320,6 +322,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					}
 				}
 
+				//创建bean实例
 				// Create bean instance.
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
@@ -382,6 +385,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 		}
 
+		//类型转换
 		// Check if required type matches the type of the actual bean instance.
 		if (requiredType != null && !requiredType.isInstance(bean)) {
 			try {
@@ -1784,7 +1788,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
 
 		// Don't let calling code try to dereference the factory if the bean isn't a factory.
-		//检查bean名称是否符合bean工厂的命名规范
+		//检查bean名称是否符合bean工厂的命名规范,如果名称是工厂的格式,则获取的bean为工厂实例
 		if (BeanFactoryUtils.isFactoryDereference(name)) {
 			//符合规范但是个null
 			if (beanInstance instanceof NullBean) {
@@ -1794,6 +1798,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			if (!(beanInstance instanceof FactoryBean)) {
 				throw new BeanIsNotAFactoryException(beanName, beanInstance.getClass());
 			}
+			//如果bean定义不为空,设置为true表明是个工厂bean
 			if (mbd != null) {
 				mbd.isFactoryBean = true;
 			}
@@ -1803,11 +1808,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		// Now we have the bean instance, which may be a normal bean or a FactoryBean.
 		// If it's a FactoryBean, we use it to create a bean instance, unless the
 		// caller actually wants a reference to the factory.
-		//判断是否是工厂bean
+		//如果bean实例为非工厂,直接返回
 		if (!(beanInstance instanceof FactoryBean)) {
 			return beanInstance;
 		}
 
+		//后面的逻辑是bean是工厂,而名称则不是工厂的解引用格式
 		Object object = null;
 		if (mbd != null) {
 			mbd.isFactoryBean = true;

@@ -165,6 +165,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
+	 * 此方法通过单利工厂进行创建对象,对象创建完成后移除单利工厂记录
 	 * singletonObjects:用于保存BeanName和创建bean实例之间的关系 beanName->bean
 	 * earlySingletonObjects:用于保存BeanName和创建bean实例之间的关系 beanName->bean
 	 * 						 不同点是,当bean放入到此集合中时,在bean创建的过程中就可以通
@@ -180,19 +181,22 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
-		//缓存中是否有bean
+		//缓存中是否有创建好的bean
 		Object singletonObject = this.singletonObjects.get(beanName);
+		//缓存中无指定的bean并且该bean未在创建中
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+			//加锁
 			synchronized (this.singletonObjects) {
+				//指定的bean是否在创建中
 				singletonObject = this.earlySingletonObjects.get(beanName);
+				//非创建中,并且允许提前引用
 				if (singletonObject == null && allowEarlyReference) {
-					//缓存中无单利对象并允许前期引用
 					//获取单利工厂
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 					if (singletonFactory != null) {
-						//调用工厂获取对象
+						//调用工厂创建对象
 						singletonObject = singletonFactory.getObject();
-						//记录对象到map
+						//把创建好的对象放入到正在创建的集合中去
 						this.earlySingletonObjects.put(beanName, singletonObject);
 						//移除单利工厂
 						this.singletonFactories.remove(beanName);
