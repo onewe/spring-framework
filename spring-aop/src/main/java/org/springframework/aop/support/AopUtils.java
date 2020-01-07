@@ -307,18 +307,26 @@ public abstract class AopUtils {
 			return candidateAdvisors;
 		}
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
+		// 遍历所有增强器
 		for (Advisor candidate : candidateAdvisors) {
+			// 过滤出符合 类型是IntroductionAdvisor  并且 能应用到当前bean的增强器
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
 			}
 		}
+		// 合法的增强器集合
 		boolean hasIntroductions = !eligibleAdvisors.isEmpty();
+
+		// 遍历所有增强器
 		for (Advisor candidate : candidateAdvisors) {
 			if (candidate instanceof IntroductionAdvisor) {
 				// already processed
+				// 已经处理过 跳过
 				continue;
 			}
+			// 判断是否能够应用到 当前的bean
 			if (canApply(candidate, clazz, hasIntroductions)) {
+				// 添加到合法增强器集合中
 				eligibleAdvisors.add(candidate);
 			}
 		}

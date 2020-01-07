@@ -455,8 +455,10 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		}
 
 		ProxyFactory proxyFactory = new ProxyFactory();
+		// 获取当前类中的相关属性
 		proxyFactory.copyFrom(this);
 
+		// 判断代理到类还是代理到接口
 		if (!proxyFactory.isProxyTargetClass()) {
 			// exposed
 			if (shouldProxyTargetClass(beanClass, beanName)) {
@@ -467,16 +469,18 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			}
 		}
 
+		// 创建增强器
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
 		proxyFactory.addAdvisors(advisors);
 		proxyFactory.setTargetSource(targetSource);
 		customizeProxyFactory(proxyFactory);
 
+		// 用于控制代理类 是否还能被修改 默认值为false
 		proxyFactory.setFrozen(this.freezeProxy);
 		if (advisorsPreFiltered()) {
 			proxyFactory.setPreFiltered(true);
 		}
-
+		// 创建代理
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 
@@ -518,6 +522,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 */
 	protected Advisor[] buildAdvisors(@Nullable String beanName, @Nullable Object[] specificInterceptors) {
 		// Handle prototypes correctly...
+		// 解析公共的拦截器
 		Advisor[] commonInterceptors = resolveInterceptorNames();
 
 		List<Object> allInterceptors = new ArrayList<>();

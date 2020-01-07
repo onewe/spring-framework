@@ -161,10 +161,12 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 		Object target = null;
 
 		try {
+			// 处理equals 方法
 			if (!this.equalsDefined && AopUtils.isEqualsMethod(method)) {
 				// The target does not implement the equals(Object) method itself.
 				return equals(args[0]);
 			}
+			// 处理hash code 方法
 			else if (!this.hashCodeDefined && AopUtils.isHashCodeMethod(method)) {
 				// The target does not implement the hashCode() method itself.
 				return hashCode();
@@ -181,6 +183,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 
 			Object retVal;
 
+			// 解决 通过 方法内部无法实现增强的问题
 			if (this.advised.exposeProxy) {
 				// Make invocation available if necessary.
 				oldProxy = AopContext.setCurrentProxy(proxy);
@@ -202,18 +205,22 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 				// Note that the final invoker must be an InvokerInterceptor so we know it does
 				// nothing but a reflective operation on the target, and no hot swapping or fancy proxying.
 				Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+				// 如果没有任何拦截器,直接调用切点方法
 				retVal = AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse);
 			}
 			else {
+				// 将拦截器封装为MethodInvocation 使用proceed 调用
 				// We need to create a method invocation...
 				MethodInvocation invocation =
 						new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
 				// Proceed to the joinpoint through the interceptor chain.
+				// 执行拦截器链
 				retVal = invocation.proceed();
 			}
 
 			// Massage return value if necessary.
 			Class<?> returnType = method.getReturnType();
+			// 返回结果
 			if (retVal != null && retVal == target &&
 					returnType != Object.class && returnType.isInstance(proxy) &&
 					!RawTargetAccess.class.isAssignableFrom(method.getDeclaringClass())) {
@@ -223,6 +230,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 				retVal = proxy;
 			}
 			else if (retVal == null && returnType != Void.TYPE && returnType.isPrimitive()) {
+				// 如果返回结果为空 则抛出异常
 				throw new AopInvocationException(
 						"Null return value from advice does not match primitive return type for: " + method);
 			}
@@ -235,6 +243,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 			}
 			if (setProxyContext) {
 				// Restore old proxy.
+				// 还原Aop上下文的当前代理对象
 				AopContext.setCurrentProxy(oldProxy);
 			}
 		}
