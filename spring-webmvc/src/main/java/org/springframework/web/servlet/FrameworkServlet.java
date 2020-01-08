@@ -524,10 +524,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		if (logger.isInfoEnabled()) {
 			logger.info("Initializing Servlet '" + getServletName() + "'");
 		}
+		// 计时
 		long startTime = System.currentTimeMillis();
 
 		try {
+			// 初始化webapp上下文
 			this.webApplicationContext = initWebApplicationContext();
+			// 模板方法
 			initFrameworkServlet();
 		}
 		catch (ServletException | RuntimeException ex) {
@@ -562,8 +565,10 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
 
+		// 如果不等于空 则为webApplicationContext 未通过构造器创建
 		if (this.webApplicationContext != null) {
 			// A context instance was injected at construction time -> use it
+			// 在构造时注入上下文
 			wac = this.webApplicationContext;
 			if (wac instanceof ConfigurableWebApplicationContext) {
 				ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) wac;
@@ -575,6 +580,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 						// the root application context (if any; may be null) as the parent
 						cwac.setParent(rootContext);
 					}
+					// 刷新上下文
 					configureAndRefreshWebApplicationContext(cwac);
 				}
 			}
@@ -584,10 +590,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			// has been registered in the servlet context. If one exists, it is assumed
 			// that the parent context (if any) has already been set and that the
 			// user has performed any initialization such as setting the context id
+
+			// 根据属性加载上下文
 			wac = findWebApplicationContext();
 		}
 		if (wac == null) {
 			// No context instance is defined for this servlet -> create a local one
+			// 创建上下文对象
 			wac = createWebApplicationContext(rootContext);
 		}
 
@@ -596,6 +605,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			// support or the context injected at construction time had already been
 			// refreshed -> trigger initial onRefresh manually here.
 			synchronized (this.onRefreshMonitor) {
+				// 刷新
+				// 子类刷新逻辑
 				onRefresh(wac);
 			}
 		}
@@ -699,6 +710,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 		postProcessWebApplicationContext(wac);
 		applyInitializers(wac);
+		// 刷新 配置文件重新加载
 		wac.refresh();
 	}
 
@@ -987,14 +999,14 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 */
 	protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		// 记录时间
 		long startTime = System.currentTimeMillis();
 		Throwable failureCause = null;
-
+		// 本地化上下文
 		LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
 		LocaleContext localeContext = buildLocaleContext(request);
-
 		RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
+		// 获取request response 绑定到线程上下文
 		ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);
 
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
@@ -1015,11 +1027,14 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 
 		finally {
+			// 还原上下文相关属性
 			resetContextHolders(request, previousLocaleContext, previousAttributes);
 			if (requestAttributes != null) {
 				requestAttributes.requestCompleted();
 			}
+			// 记录请求结果
 			logResult(request, response, failureCause, asyncManager);
+			// 发布通知
 			publishRequestHandledEvent(request, response, startTime, failureCause);
 		}
 	}
