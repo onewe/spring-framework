@@ -81,27 +81,31 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	/**
 	 * Indicates that the validation should be disabled.
 	 */
+	// 禁用验证模式
 	public static final int VALIDATION_NONE = XmlValidationModeDetector.VALIDATION_NONE;
 
 	/**
 	 * Indicates that the validation mode should be detected automatically.
 	 */
+	// 自动获取验证模式
 	public static final int VALIDATION_AUTO = XmlValidationModeDetector.VALIDATION_AUTO;
 
 	/**
 	 * Indicates that DTD validation should be used.
 	 */
+	// DTD 验证模式
 	public static final int VALIDATION_DTD = XmlValidationModeDetector.VALIDATION_DTD;
 
 	/**
 	 * Indicates that XSD validation should be used.
 	 */
+	// XSD 验证模式
 	public static final int VALIDATION_XSD = XmlValidationModeDetector.VALIDATION_XSD;
 
 
 	/** Constants instance for this class. */
 	private static final Constants constants = new Constants(XmlBeanDefinitionReader.class);
-
+	// 默认自动验证模式
 	private int validationMode = VALIDATION_AUTO;
 
 	private boolean namespaceAware = false;
@@ -259,13 +263,18 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * 获取实体解析器,dtd,xdt等
 	 */
 	protected EntityResolver getEntityResolver() {
+		// 如果解析器为空
 		if (this.entityResolver == null) {
 			// Determine default EntityResolver to use.
+			// 获取资源加载器
 			ResourceLoader resourceLoader = getResourceLoader();
 			if (resourceLoader != null) {
+				// 如果资源加载器不为空,则使用资源实体解析器
 				this.entityResolver = new ResourceEntityResolver(resourceLoader);
 			}
 			else {
+				// 如果为空,则委托其他的解析器
+				// 默认的为 BeansDtdResolver 和 PluggableSchemaResolver
 				this.entityResolver = new DelegatingEntityResolver(getBeanClassLoader());
 			}
 		}
@@ -397,9 +406,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throws BeanDefinitionStoreException {
 
 		try {
-			//加载xml
+			// 加载xml
 			Document doc = doLoadDocument(inputSource, resource);
-			//注册bean
+			// 注册bean
 			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);
@@ -456,20 +465,21 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see #detectValidationMode
 	 */
 	protected int getValidationModeForResource(Resource resource) {
+		// 获取验证模式,默认为自动
 		int validationModeToUse = getValidationMode();
-		//如果手动指定验证模式则使用指定的验证模式
+		// 如果手动指定验证模式则使用指定的验证模式
 		if (validationModeToUse != VALIDATION_AUTO) {
 			return validationModeToUse;
 		}
-		//非手动指定验证模式,自动检测验证模式
+		// 非手动指定验证模式,自动检测验证模式
 		int detectedMode = detectValidationMode(resource);
 		if (detectedMode != VALIDATION_AUTO) {
 			return detectedMode;
 		}
-		//如果是自动模式则使用XSD
 		// Hmm, we didn't get a clear indication... Let's assume XSD,
 		// since apparently no DTD declaration has been found up until
 		// detection stopped (before finding the document's root tag).
+		// 以上都未获取验证模式,则使用xsd验证模式
 		return VALIDATION_XSD;
 	}
 
@@ -501,6 +511,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 		}
 
 		try {
+			// 使用检测器 探测验证模式
 			return this.validationModeDetector.detectValidationMode(inputStream);
 		}
 		catch (IOException ex) {

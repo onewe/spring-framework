@@ -48,6 +48,7 @@ public class FileSystemResourceLoader extends DefaultResourceLoader {
 	 */
 	@Override
 	protected Resource getResourceByPath(String path) {
+		// 如果是/ 开头则截取 /后面的字符
 		if (path.startsWith("/")) {
 			path = path.substring(1);
 		}

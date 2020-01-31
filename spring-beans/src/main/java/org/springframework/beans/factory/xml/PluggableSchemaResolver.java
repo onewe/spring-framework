@@ -113,14 +113,15 @@ public class PluggableSchemaResolver implements EntityResolver {
 			logger.trace("Trying to resolve XML entity with public id [" + publicId +
 					"] and system id [" + systemId + "]");
 		}
-
+		// systemId url 不能为空
 		if (systemId != null) {
-			//从缓存中加载xsd文件
-			//判断缓存中是否有xsd文件
-			//缓存中的xsd文件都是从网络中加载
+			// 从缓存中加载xsd文件
+			// 判断缓存中是否有xsd文件
+			// 缓存中的xsd文件都是从网络中加载
 			String resourceLocation = getSchemaMappings().get(systemId);
 			if (resourceLocation == null && systemId.startsWith("https:")) {
 				// Retrieve canonical http schema mapping even for https declaration
+				// 如果https 未找到约束文件 则尝试从http 获取缓存
 				resourceLocation = getSchemaMappings().get("http:" + systemId.substring(6));
 			}
 			//如果缓存命中
@@ -129,7 +130,9 @@ public class PluggableSchemaResolver implements EntityResolver {
 				Resource resource = new ClassPathResource(resourceLocation, this.classLoader);
 				try {
 					InputSource source = new InputSource(resource.getInputStream());
+					// 设置publicId
 					source.setPublicId(publicId);
+					// 设置systemId
 					source.setSystemId(systemId);
 					if (logger.isTraceEnabled()) {
 						logger.trace("Found XML schema [" + systemId + "] in classpath: " + resourceLocation);
@@ -154,20 +157,26 @@ public class PluggableSchemaResolver implements EntityResolver {
 	private Map<String, String> getSchemaMappings() {
 		Map<String, String> schemaMappings = this.schemaMappings;
 		if (schemaMappings == null) {
+			// 单利模式 同步
 			synchronized (this) {
 				schemaMappings = this.schemaMappings;
+				// 双重检查
 				if (schemaMappings == null) {
 					if (logger.isTraceEnabled()) {
 						logger.trace("Loading schema mappings from [" + this.schemaMappingsLocation + "]");
 					}
 					try {
+						// 加载clsspath路径下的 META-INF/spring.schemas
 						Properties mappings =
 								PropertiesLoaderUtils.loadAllProperties(this.schemaMappingsLocation, this.classLoader);
 						if (logger.isTraceEnabled()) {
 							logger.trace("Loaded schema mappings: " + mappings);
 						}
+						// 创建线程安全的的hashMap
 						schemaMappings = new ConcurrentHashMap<>(mappings.size());
+						// properties 转 hashMap
 						CollectionUtils.mergePropertiesIntoMap(mappings, schemaMappings);
+						// 赋值
 						this.schemaMappings = schemaMappings;
 					}
 					catch (IOException ex) {

@@ -60,6 +60,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * <p>ClassLoader access will happen using the thread context class loader
 	 * at the time of this ResourceLoader's initialization.
 	 * @see java.lang.Thread#getContextClassLoader()
+	 * 使用默认构造器,默认构造器中使用默认的类加载器
 	 */
 	public DefaultResourceLoader() {
 		this.classLoader = ClassUtils.getDefaultClassLoader();
@@ -69,6 +70,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * Create a new DefaultResourceLoader.
 	 * @param classLoader the ClassLoader to load class path resources with, or {@code null}
 	 * for using the thread context class loader at the time of actual resource access
+	 * 使用指定的类加载器
 	 */
 	public DefaultResourceLoader(@Nullable ClassLoader classLoader) {
 		this.classLoader = classLoader;
@@ -80,6 +82,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * for using the thread context class loader at the time of actual resource access.
 	 * <p>The default is that ClassLoader access will happen using the thread context
 	 * class loader at the time of this ResourceLoader's initialization.
+	 * 设置类加载器
 	 */
 	public void setClassLoader(@Nullable ClassLoader classLoader) {
 		this.classLoader = classLoader;
@@ -89,6 +92,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * Return the ClassLoader to load class path resources with.
 	 * <p>Will get passed to ClassPathResource's constructor for all
 	 * ClassPathResource objects created by this resource loader.
+	 * 获取类加载器
 	 * @see ClassPathResource
 	 */
 	@Override
@@ -102,6 +106,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * additional protocols to be handled.
 	 * <p>Any such resolver will be invoked ahead of this loader's standard
 	 * resolution rules. It may therefore also override any default rules.
+	 * 添加协议解析器
 	 * @since 4.3
 	 * @see #getProtocolResolvers()
 	 */
@@ -113,6 +118,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 	/**
 	 * Return the collection of currently registered protocol resolvers,
 	 * allowing for introspection as well as modification.
+	 * 获取协议解析器集合
 	 * @since 4.3
 	 */
 	public Collection<ProtocolResolver> getProtocolResolvers() {
@@ -123,6 +129,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * Obtain a cache for the given value type, keyed by {@link Resource}.
 	 * @param valueType the value type, e.g. an ASM {@code MetadataReader}
 	 * @return the cache {@link Map}, shared at the {@code ResourceLoader} level
+	 * 获取资源缓存
 	 * @since 5.0
 	 */
 	@SuppressWarnings("unchecked")
@@ -134,37 +141,47 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * Clear all resource caches in this resource loader.
 	 * @since 5.0
 	 * @see #getResourceCache
+	 * 清除所有资源缓存
 	 */
 	public void clearResourceCaches() {
 		this.resourceCaches.clear();
 	}
 
-
+	/**
+	 * 获取资源
+	 * **/
 	@Override
 	public Resource getResource(String location) {
 		Assert.notNull(location, "Location must not be null");
-
+		// 遍历所有协议解析器
 		for (ProtocolResolver protocolResolver : getProtocolResolvers()) {
+			// 解析资源
 			Resource resource = protocolResolver.resolve(location, this);
+			// 如果资源解析到则返回 resource 对象
 			if (resource != null) {
 				return resource;
 			}
 		}
-
+		// 判断是否是/开头
 		if (location.startsWith("/")) {
+			// 获取classpath上下文中的资源
 			return getResourceByPath(location);
 		}
+		// 判断是否是classpath:开头路径,如果是则从classpath中获取资源
 		else if (location.startsWith(CLASSPATH_URL_PREFIX)) {
 			return new ClassPathResource(location.substring(CLASSPATH_URL_PREFIX.length()), getClassLoader());
 		}
 		else {
 			try {
+				// 尝试把路径转化为url
 				// Try to parse the location as a URL...
 				URL url = new URL(location);
+				// 判断是文件资源 还是url资源
 				return (ResourceUtils.isFileURL(url) ? new FileUrlResource(url) : new UrlResource(url));
 			}
 			catch (MalformedURLException ex) {
 				// No URL -> resolve as resource path.
+				// 非url 尝试从 classpath 上下文中获取资源
 				return getResourceByPath(location);
 			}
 		}

@@ -68,12 +68,12 @@ public class DefaultDocumentLoader implements DocumentLoader {
 	@Override
 	public Document loadDocument(InputSource inputSource, EntityResolver entityResolver,
 			ErrorHandler errorHandler, int validationMode, boolean namespaceAware) throws Exception {
-		//解析xml常用套路
+		// 解析xml常用套路
 		DocumentBuilderFactory factory = createDocumentBuilderFactory(validationMode, namespaceAware);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Using JAXP provider [" + factory.getClass().getName() + "]");
 		}
-		//解析xml常用套路
+		// 解析xml常用套路
 		DocumentBuilder builder = createDocumentBuilder(factory, entityResolver, errorHandler);
 		return builder.parse(inputSource);
 	}
@@ -90,14 +90,19 @@ public class DefaultDocumentLoader implements DocumentLoader {
 			throws ParserConfigurationException {
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		// 设置命名空间支持
 		factory.setNamespaceAware(namespaceAware);
-
+		// 非禁用验证模式
 		if (validationMode != XmlValidationModeDetector.VALIDATION_NONE) {
+			// 开启校验
 			factory.setValidating(true);
+			// 如果为XSD
 			if (validationMode == XmlValidationModeDetector.VALIDATION_XSD) {
 				// Enforce namespace aware for XSD...
+				// XSD 模式下，强制设置命名空间支持
 				factory.setNamespaceAware(true);
 				try {
+					// 设置 SCHEMA_LANGUAGE_ATTRIBUTE
 					factory.setAttribute(SCHEMA_LANGUAGE_ATTRIBUTE, XSD_SCHEMA_LANGUAGE);
 				}
 				catch (IllegalArgumentException ex) {
@@ -128,12 +133,14 @@ public class DefaultDocumentLoader implements DocumentLoader {
 	protected DocumentBuilder createDocumentBuilder(DocumentBuilderFactory factory,
 			@Nullable EntityResolver entityResolver, @Nullable ErrorHandler errorHandler)
 			throws ParserConfigurationException {
-
+		// 创建 DocumentBuilder 对象
 		DocumentBuilder docBuilder = factory.newDocumentBuilder();
 		if (entityResolver != null) {
+			// 解析器不为空,则设置解析器
 			docBuilder.setEntityResolver(entityResolver);
 		}
 		if (errorHandler != null) {
+			// 错误处理器不为空,则设置错误处理器
 			docBuilder.setErrorHandler(errorHandler);
 		}
 		return docBuilder;
