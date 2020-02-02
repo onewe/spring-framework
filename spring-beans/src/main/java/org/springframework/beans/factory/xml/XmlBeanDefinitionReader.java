@@ -312,7 +312,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 */
 	@Override
 	public int loadBeanDefinitions(Resource resource) throws BeanDefinitionStoreException {
-		//把classPathsResource转换为EncodedResource,默认字符编码为空
+		// 把classPathsResource转换为EncodedResource,默认字符编码为空
 		return loadBeanDefinitions(new EncodedResource(resource));
 	}
 
@@ -534,9 +534,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see BeanDefinitionDocumentReader#registerBeanDefinitions
 	 */
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
-		//创建BeanDefinitionDocumentReader 默认是DefaultBeanDefinitionDocumentReader
+		// 创建BeanDefinitionDocumentReader 默认是DefaultBeanDefinitionDocumentReader
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
-		//获取已经注册的bean的数量,beanDefinitionMap.size()
+		// 获取已经注册的bean的数量,beanDefinitionMap.size()
 		int countBefore = getRegistry().getBeanDefinitionCount();
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
 		return getRegistry().getBeanDefinitionCount() - countBefore;

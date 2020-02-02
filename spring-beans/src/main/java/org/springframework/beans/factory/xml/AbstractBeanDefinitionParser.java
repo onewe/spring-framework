@@ -63,27 +63,34 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 	@Override
 	@Nullable
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
-		//模板模式,子类只需实现固定逻辑即可,其他逻辑父类统一实现
+		// 模板模式,子类只需实现固定逻辑即可,其他逻辑父类统一实现
+		// 由自定义解析器 实现解析逻辑
 		AbstractBeanDefinition definition = parseInternal(element, parserContext);
 		if (definition != null && !parserContext.isNested()) {
 			try {
+				// 解析 id
 				String id = resolveId(element, definition, parserContext);
+				// id 为空报错
 				if (!StringUtils.hasText(id)) {
 					parserContext.getReaderContext().error(
 							"Id is required for element '" + parserContext.getDelegate().getLocalName(element)
 									+ "' when used as a top-level tag", element);
 				}
 				String[] aliases = null;
+				// 判断是否需要解析别名
 				if (shouldParseNameAsAliases()) {
+					// 获取 name 属性值
 					String name = element.getAttribute(NAME_ATTRIBUTE);
+					// 判断 name 属性值 不为空
 					if (StringUtils.hasLength(name)) {
 						aliases = StringUtils.trimArrayElements(StringUtils.commaDelimitedListToStringArray(name));
 					}
 				}
+				// 创建 BeanDefinitionHolder
 				BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, id, aliases);
-				//注册bean
+				// 注册 bean
 				registerBeanDefinition(holder, parserContext.getRegistry());
-				//发送事件
+				// 如果需要发送事件,则发送事件
 				if (shouldFireEvents()) {
 					BeanComponentDefinition componentDefinition = new BeanComponentDefinition(holder);
 					postProcessComponentDefinition(componentDefinition);
@@ -114,13 +121,16 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 	 */
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
-
+		// 判断是否需要生成 id
 		if (shouldGenerateId()) {
 			return parserContext.getReaderContext().generateBeanName(definition);
 		}
 		else {
+			// 获取 id 属性
 			String id = element.getAttribute(ID_ATTRIBUTE);
+			// id 属性值为空 并且 需要生成 id
 			if (!StringUtils.hasText(id) && shouldGenerateIdAsFallback()) {
+				// 生成 id
 				id = parserContext.getReaderContext().generateBeanName(definition);
 			}
 			return id;
