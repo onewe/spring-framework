@@ -206,7 +206,7 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 	@Override
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess, Properties props)
 			throws BeansException {
-
+		// 创建解析器
 		StringValueResolver valueResolver = new PlaceholderResolvingStringValueResolver(props);
 		doProcessProperties(beanFactoryToProcess, valueResolver);
 	}

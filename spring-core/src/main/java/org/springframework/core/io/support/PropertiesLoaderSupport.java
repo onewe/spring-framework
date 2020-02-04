@@ -145,12 +145,12 @@ public abstract class PropertiesLoaderSupport {
 	 */
 	protected Properties mergeProperties() throws IOException {
 		Properties result = new Properties();
-
+		// 是否覆盖配置
 		if (this.localOverride) {
 			// Load properties from file upfront, to let local properties override.
 			loadProperties(result);
 		}
-
+		// 加载配置
 		if (this.localProperties != null) {
 			for (Properties localProp : this.localProperties) {
 				CollectionUtils.mergePropertiesIntoMap(localProp, result);

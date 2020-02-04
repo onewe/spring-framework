@@ -136,30 +136,30 @@ class ConstructorResolver {
 			argsToUse = explicitArgs;
 		}
 		else {
-			//解析参数
+			// 解析参数
 			Object[] argsToResolve = null;
 			synchronized (mbd.constructorArgumentLock) {
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
 				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
 					// Found a cached constructor...
-					//从缓存中获取参数
+					// 从缓存中获取参数
 					argsToUse = mbd.resolvedConstructorArguments;
 					if (argsToUse == null) {
-						//获取通过xml配置的构造器参数
+						// 获取通过xml配置的构造器参数
 						argsToResolve = mbd.preparedConstructorArguments;
 					}
 				}
 			}
-			//如果缓存中有解析过的参数
+			// 如果缓存中有解析过的参数
 			if (argsToResolve != null) {
-				//获取最终的参数
+				// 获取最终的参数
 				argsToUse = resolvePreparedArguments(beanName, mbd, bw, constructorToUse, argsToResolve, true);
 			}
 		}
-		//如果参数没有被缓存
+		// 如果参数没有被缓存
 		if (constructorToUse == null || argsToUse == null) {
 			// Take specified constructors, if any.
-			//获取指定的构造器
+			// 获取指定的构造器
 			Constructor<?>[] candidates = chosenCtors;
 			if (candidates == null) {
 				Class<?> beanClass = mbd.getBeanClass();
@@ -173,11 +173,11 @@ class ConstructorResolver {
 							"] from ClassLoader [" + beanClass.getClassLoader() + "] failed", ex);
 				}
 			}
-			//如果构造器个数只有1个,并且无参数,说明是默认的构造器
+			// 如果构造器个数只有1个,并且无参数,说明是默认的构造器
 			if (candidates.length == 1 && explicitArgs == null && !mbd.hasConstructorArgumentValues()) {
 				Constructor<?> uniqueCandidate = candidates[0];
 				if (uniqueCandidate.getParameterCount() == 0) {
-					//放入到缓存中
+					// 放入到缓存中
 					synchronized (mbd.constructorArgumentLock) {
 						mbd.resolvedConstructorOrFactoryMethod = uniqueCandidate;
 						mbd.constructorArgumentsResolved = true;
@@ -207,11 +207,11 @@ class ConstructorResolver {
 			int minTypeDiffWeight = Integer.MAX_VALUE;
 			Set<Constructor<?>> ambiguousConstructors = null;
 			LinkedList<UnsatisfiedDependencyException> causes = null;
-			//把多个构造器按照参数个数进行排序,public的优先
+			// 把多个构造器按照参数个数进行排序,public的优先
 			for (Constructor<?> candidate : candidates) {
 
 				int parameterCount = candidate.getParameterCount();
-				//是否匹配到参数个数相等的构造器
+				// 是否匹配到参数个数相等的构造器
 				if (constructorToUse != null && argsToUse != null && argsToUse.length > parameterCount) {
 					// Already found greedy constructor that can be satisfied ->
 					// do not look any further, there are only less greedy constructors left.
@@ -220,7 +220,7 @@ class ConstructorResolver {
 				if (parameterCount < minNrOfArgs) {
 					continue;
 				}
-				//以下是匹配参赛类型逻辑
+				// 以下是匹配参赛类型逻辑
 				ArgumentsHolder argsHolder;
 				Class<?>[] paramTypes = candidate.getParameterTypes();
 				if (resolvedValues != null) {
@@ -407,26 +407,33 @@ class ConstructorResolver {
 		Class<?> factoryClass;
 		boolean isStatic;
 
+		// 获取工厂名称
 		String factoryBeanName = mbd.getFactoryBeanName();
+		// 工厂名不为空
 		if (factoryBeanName != null) {
 			if (factoryBeanName.equals(beanName)) {
 				throw new BeanDefinitionStoreException(mbd.getResourceDescription(), beanName,
 						"factory-bean reference points back to the same bean definition");
 			}
+			// 获取工厂实例
 			factoryBean = this.beanFactory.getBean(factoryBeanName);
+			// 如果是单利,并且正在创建中 抛出异常
 			if (mbd.isSingleton() && this.beanFactory.containsSingleton(beanName)) {
 				throw new ImplicitlyAppearedSingletonException();
 			}
+			// 获取工厂class
 			factoryClass = factoryBean.getClass();
 			isStatic = false;
 		}
 		else {
+			// 工厂名为空,为静态工厂
 			// It's a static factory method on the bean class.
 			if (!mbd.hasBeanClass()) {
 				throw new BeanDefinitionStoreException(mbd.getResourceDescription(), beanName,
 						"bean definition declares neither a bean class nor a factory-bean reference");
 			}
 			factoryBean = null;
+			// 获取工厂类名
 			factoryClass = mbd.getBeanClass();
 			isStatic = true;
 		}
@@ -435,32 +442,43 @@ class ConstructorResolver {
 		ArgumentsHolder argsHolderToUse = null;
 		Object[] argsToUse = null;
 
+		// 判断是否指定了参数,如果指定了则直接使用
 		if (explicitArgs != null) {
 			argsToUse = explicitArgs;
 		}
+		// 未指定,尝试从配置文件中获取
 		else {
 			Object[] argsToResolve = null;
+			// 并发控制
 			synchronized (mbd.constructorArgumentLock) {
+				// 尝试从缓存中获取
 				factoryMethodToUse = (Method) mbd.resolvedConstructorOrFactoryMethod;
+				// 如果方法解析过,则直接使用
 				if (factoryMethodToUse != null && mbd.constructorArgumentsResolved) {
 					// Found a cached factory method...
 					argsToUse = mbd.resolvedConstructorArguments;
 					if (argsToUse == null) {
+						// 获取构造函数的参数
 						argsToResolve = mbd.preparedConstructorArguments;
 					}
 				}
 			}
+			// 如果缓存中获取到了参数
+			// 则解析存储在 BeanDefinition 中的参数
 			if (argsToResolve != null) {
 				argsToUse = resolvePreparedArguments(beanName, mbd, bw, factoryMethodToUse, argsToResolve, true);
 			}
 		}
 
+		// 配置文件中未解析到参数
 		if (factoryMethodToUse == null || argsToUse == null) {
 			// Need to determine the factory method...
 			// Try all methods with this name to see if they match the given arguments.
+			// 获取工厂类
 			factoryClass = ClassUtils.getUserClass(factoryClass);
 
 			List<Method> candidates = null;
+			// 判读方法是否唯一
 			if (mbd.isFactoryMethodUnique) {
 				if (factoryMethodToUse == null) {
 					factoryMethodToUse = mbd.getResolvedFactoryMethod();

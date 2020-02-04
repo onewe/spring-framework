@@ -65,10 +65,13 @@ public class DefaultConversionService extends GenericConversionService {
 	 * @since 4.3.5
 	 */
 	public static ConversionService getSharedInstance() {
+		// 单利模式
 		DefaultConversionService cs = sharedInstance;
 		if (cs == null) {
+			// 加锁
 			synchronized (DefaultConversionService.class) {
 				cs = sharedInstance;
+				// 双重检查
 				if (cs == null) {
 					cs = new DefaultConversionService();
 					sharedInstance = cs;

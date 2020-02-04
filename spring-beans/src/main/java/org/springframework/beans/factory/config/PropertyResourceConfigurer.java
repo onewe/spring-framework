@@ -77,12 +77,15 @@ public abstract class PropertyResourceConfigurer extends PropertiesLoaderSupport
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		try {
+			// 加载配置
 			Properties mergedProps = mergeProperties();
 
 			// Convert the merged properties, if necessary.
+			// 参数转换
 			convertProperties(mergedProps);
 
 			// Let the subclass process the properties.
+			// 处理配置
 			processProperties(beanFactory, mergedProps);
 		}
 		catch (IOException ex) {
@@ -99,10 +102,14 @@ public abstract class PropertyResourceConfigurer extends PropertiesLoaderSupport
 	 * @see #processProperties
 	 */
 	protected void convertProperties(Properties props) {
+		// 遍历
 		Enumeration<?> propertyNames = props.propertyNames();
 		while (propertyNames.hasMoreElements()) {
+			// 获取属性名
 			String propertyName = (String) propertyNames.nextElement();
+			// 获取属性值
 			String propertyValue = props.getProperty(propertyName);
+			// 参数转换
 			String convertedValue = convertProperty(propertyName, propertyValue);
 			if (!ObjectUtils.nullSafeEquals(propertyValue, convertedValue)) {
 				props.setProperty(propertyName, convertedValue);
