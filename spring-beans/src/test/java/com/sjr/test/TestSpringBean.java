@@ -45,4 +45,11 @@ public class TestSpringBean {
 		final String testStr = testBean.getTestStr();
 		System.out.println(testStr);
 	}
+
+	@Test
+	public void testSpringAdvParseTag(){
+		BeanFactory factory = new XmlBeanFactory(new ClassPathResource("com/sjr/test/bean/AdvTestBean.xml"));
+		final MyTestBean testBean = factory.getBean("myTestBean",MyTestBean.class);
+		testBean.printAdvProp();
+	}
 }

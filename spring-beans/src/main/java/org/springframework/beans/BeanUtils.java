@@ -128,20 +128,26 @@ public abstract class BeanUtils {
 	 */
 	public static <T> T instantiateClass(Class<T> clazz) throws BeanInstantiationException {
 		Assert.notNull(clazz, "Class must not be null");
+		// 不能为接口
 		if (clazz.isInterface()) {
 			throw new BeanInstantiationException(clazz, "Specified class is an interface");
 		}
 		try {
 			return instantiateClass(clazz.getDeclaredConstructor());
 		}
+		// 没找到相关方法,抛出异常
 		catch (NoSuchMethodException ex) {
+			// 查找主要的构造器
 			Constructor<T> ctor = findPrimaryConstructor(clazz);
 			if (ctor != null) {
+				// 创建对象
 				return instantiateClass(ctor);
 			}
+			// 抛出异常
 			throw new BeanInstantiationException(clazz, "No default constructor found", ex);
 		}
 		catch (LinkageError err) {
+			// 抛出异常
 			throw new BeanInstantiationException(clazz, "Unresolvable class definition", err);
 		}
 	}

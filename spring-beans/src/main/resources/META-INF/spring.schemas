@@ -58,3 +58,4 @@ https\://www.springframework.org/schema/util/spring-util-4.1.xsd=org/springframe
 https\://www.springframework.org/schema/util/spring-util-4.2.xsd=org/springframework/beans/factory/xml/spring-util.xsd
 https\://www.springframework.org/schema/util/spring-util-4.3.xsd=org/springframework/beans/factory/xml/spring-util.xsd
 https\://www.springframework.org/schema/util/spring-util.xsd=org/springframework/beans/factory/xml/spring-util.xsd
+https\://onew.me/schema/adv/AdvProp.xsd=com/sjr/test/bean/AdvProp.xsd
