@@ -223,6 +223,11 @@ public class SimpleAliasRegistry implements AliasRegistry {
 		String canonicalName = name;
 		// Handle aliasing...
 		String resolvedName;
+		// 判断bean的名称是否是别名
+		// 一直循环 跟着别名的引用链走
+		// 直到非别名为止
+		// 例如 A-B-C-D-E-F
+		// 从A找到F
 		do {
 			resolvedName = this.aliasMap.get(canonicalName);
 			if (resolvedName != null) {

@@ -261,9 +261,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 			}
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
-		}
-
-		else {
+		} else {
 			// 如果为原型模式,存在循环依赖则报错
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
@@ -295,6 +293,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					return (T) parentBeanFactory.getBean(nameToLookup);
 				}
 			}
+
 			//记录 bean 正在创建中
 			if (!typeCheckOnly) {
 				markBeanAsCreated(beanName);
@@ -1299,6 +1298,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 */
 	protected RootBeanDefinition getMergedLocalBeanDefinition(String beanName) throws BeansException {
 		// Quick check on the concurrent map first, with minimal locking.
+		// 从缓存中获取
 		RootBeanDefinition mbd = this.mergedBeanDefinitions.get(beanName);
 		if (mbd != null && !mbd.stale) {
 			return mbd;
@@ -1333,24 +1333,30 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected RootBeanDefinition getMergedBeanDefinition(
 			String beanName, BeanDefinition bd, @Nullable BeanDefinition containingBd)
 			throws BeanDefinitionStoreException {
-
+		// 加锁,并发控制
 		synchronized (this.mergedBeanDefinitions) {
 			RootBeanDefinition mbd = null;
 			RootBeanDefinition previous = null;
 
 			// Check with full lock now in order to enforce the same merged instance.
 			if (containingBd == null) {
+				// 如果为空 从缓存中获取
 				mbd = this.mergedBeanDefinitions.get(beanName);
 			}
 
+
 			if (mbd == null || mbd.stale) {
 				previous = mbd;
+				// 判断是否具有父子关系
 				if (bd.getParentName() == null) {
 					// Use copy of given root bean definition.
+					// 判断类型是否是 RootBeanDefinition
 					if (bd instanceof RootBeanDefinition) {
+						// copy一个
 						mbd = ((RootBeanDefinition) bd).cloneBeanDefinition();
 					}
 					else {
+						// 转换为 RootBeanDefinition
 						mbd = new RootBeanDefinition(bd);
 					}
 				}
@@ -1358,11 +1364,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					// Child bean definition: needs to be merged with parent.
 					BeanDefinition pbd;
 					try {
+						// 获取 父bean 名称
 						String parentBeanName = transformedBeanName(bd.getParentName());
+						// 判断父与子的bean 名称是否相同
 						if (!beanName.equals(parentBeanName)) {
+							// 如果不相同,则顺则 父子关系 一路递归上去
+							// 全部转换为 RootBeanDefinition
 							pbd = getMergedBeanDefinition(parentBeanName);
 						}
 						else {
+							// 和上面代码逻辑相同 只是类型不一样
 							BeanFactory parent = getParentBeanFactory();
 							if (parent instanceof ConfigurableBeanFactory) {
 								pbd = ((ConfigurableBeanFactory) parent).getMergedBeanDefinition(parentBeanName);
@@ -1379,6 +1390,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 								"Could not resolve parent bean definition '" + bd.getParentName() + "'", ex);
 					}
 					// Deep copy with overridden values.
+					// 深拷贝 转换为RootBeanDefinition
 					mbd = new RootBeanDefinition(pbd);
 					mbd.overrideFrom(bd);
 				}
@@ -1399,6 +1411,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// Cache the merged bean definition for the time being
 				// (it might still get re-merged later on in order to pick up metadata changes)
 				if (containingBd == null && isCacheBeanMetadata()) {
+					// 加入缓存
 					this.mergedBeanDefinitions.put(beanName, mbd);
 				}
 			}
@@ -1735,12 +1748,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @param beanName the name of the bean
 	 */
 	protected void markBeanAsCreated(String beanName) {
+		// 判断是否包含beanName
 		if (!this.alreadyCreated.contains(beanName)) {
+			// 加锁并发控制
 			synchronized (this.mergedBeanDefinitions) {
+				// 双重检查
 				if (!this.alreadyCreated.contains(beanName)) {
 					// Let the bean definition get re-merged now that we're actually creating
 					// the bean... just in case some of its metadata changed in the meantime.
 					clearMergedBeanDefinition(beanName);
+					// 添加进行已经创建集合中
 					this.alreadyCreated.add(beanName);
 				}
 			}
