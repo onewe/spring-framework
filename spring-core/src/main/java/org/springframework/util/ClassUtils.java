@@ -897,12 +897,16 @@ public abstract class ClassUtils {
 	 * @return the user-defined class
 	 */
 	public static Class<?> getUserClass(Class<?> clazz) {
+		// 判断是否是 cglib 创建的类
 		if (clazz.getName().contains(CGLIB_CLASS_SEPARATOR)) {
+			// 获取 父类
 			Class<?> superclass = clazz.getSuperclass();
+			// 如果父类不为空 并且 父类不是 Object 返回父类的 class
 			if (superclass != null && superclass != Object.class) {
 				return superclass;
 			}
 		}
+		// 非 代理对象 直接返回
 		return clazz;
 	}
 
@@ -1251,6 +1255,7 @@ public abstract class ClassUtils {
 	public static Method getMostSpecificMethod(Method method, @Nullable Class<?> targetClass) {
 		if (targetClass != null && targetClass != method.getDeclaringClass() && isOverridable(method, targetClass)) {
 			try {
+				// 如果是公开的 直接从 class 中获取
 				if (Modifier.isPublic(method.getModifiers())) {
 					try {
 						return targetClass.getMethod(method.getName(), method.getParameterTypes());
@@ -1260,6 +1265,7 @@ public abstract class ClassUtils {
 					}
 				}
 				else {
+					// 如果非公开 是私有的 直接用反射获取
 					Method specificMethod =
 							ReflectionUtils.findMethod(targetClass, method.getName(), method.getParameterTypes());
 					return (specificMethod != null ? specificMethod : method);

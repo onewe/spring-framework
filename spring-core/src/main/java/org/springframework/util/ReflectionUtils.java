@@ -355,8 +355,11 @@ public abstract class ReflectionUtils {
 	 */
 	public static void doWithMethods(Class<?> clazz, MethodCallback mc, @Nullable MethodFilter mf) {
 		// Keep backing up the inheritance hierarchy.
+		// 获取该类的 所有方法
 		Method[] methods = getDeclaredMethods(clazz, false);
+		// 遍历方法
 		for (Method method : methods) {
+			// 判断 该方法 !method.isBridge()  !method.isSynthetic()
 			if (mf != null && !mf.matches(method)) {
 				continue;
 			}

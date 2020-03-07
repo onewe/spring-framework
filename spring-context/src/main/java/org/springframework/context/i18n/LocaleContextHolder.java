@@ -101,6 +101,7 @@ public final class LocaleContextHolder {
 			resetLocaleContext();
 		}
 		else {
+			// 是否跨父子线程
 			if (inheritable) {
 				inheritableLocaleContextHolder.set(localeContext);
 				localeContextHolder.remove();

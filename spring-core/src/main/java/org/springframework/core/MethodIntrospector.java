@@ -56,25 +56,35 @@ public final class MethodIntrospector {
 	 * or an empty map in case of no match
 	 */
 	public static <T> Map<Method, T> selectMethods(Class<?> targetType, final MetadataLookup<T> metadataLookup) {
+		// 创建集合
 		final Map<Method, T> methodMap = new LinkedHashMap<>();
 		Set<Class<?>> handlerTypes = new LinkedHashSet<>();
 		Class<?> specificHandlerType = null;
-
+		// 判断目标类是否是jdk代理类
 		if (!Proxy.isProxyClass(targetType)) {
+			// 非jdk代理 获取 非cglib 基类
 			specificHandlerType = ClassUtils.getUserClass(targetType);
+			// 添加到集合
 			handlerTypes.add(specificHandlerType);
 		}
+		// 获取该类所有的接口
 		handlerTypes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetType));
-
+		// 遍历
 		for (Class<?> currentHandlerType : handlerTypes) {
+			// 判断基类是否为空,如果为空就为当前 currentHandlerType
 			final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType : currentHandlerType);
 
 			ReflectionUtils.doWithMethods(currentHandlerType, method -> {
+				// 获取方法
 				Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
+				// 检查
 				T result = metadataLookup.inspect(specificMethod);
+				//结果不为空
 				if (result != null) {
+					// 解析桥接的方法
 					Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
 					if (bridgedMethod == specificMethod || metadataLookup.inspect(bridgedMethod) == null) {
+						// 放入到集合中
 						methodMap.put(specificMethod, result);
 					}
 				}

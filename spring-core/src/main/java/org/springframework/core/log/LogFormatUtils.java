@@ -81,6 +81,7 @@ public abstract class LogFormatUtils {
 	 * of {@link Log#isTraceEnabled()}
 	 */
 	public static void traceDebug(Log logger, Function<Boolean, String> messageFactory) {
+		// 判断是否开启debug选项
 		if (logger.isDebugEnabled()) {
 			boolean traceEnabled = logger.isTraceEnabled();
 			String logMessage = messageFactory.apply(traceEnabled);

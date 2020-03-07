@@ -16,14 +16,10 @@
 
 package org.springframework.web.servlet.handler;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
 import org.springframework.beans.BeansException;
 import org.springframework.util.CollectionUtils;
+
+import java.util.*;
 
 /**
  * Implementation of the {@link org.springframework.web.servlet.HandlerMapping}
@@ -159,6 +155,7 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 				if (handler instanceof String) {
 					handler = ((String) handler).trim();
 				}
+				// 调用父类 AbstractUrlHandlerMapping 方法 进行注册
 				registerHandler(url, handler);
 			});
 			if (logger.isDebugEnabled()) {

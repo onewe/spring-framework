@@ -171,16 +171,23 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 
 	@Override
 	public void setAttribute(String name, Object value, int scope) {
+		// 判断作用域是否是 request
 		if (scope == SCOPE_REQUEST) {
+			// 如果当前request 是处于非活动状态
+			// 或者当前request 已经处理完毕 抛出异常
 			if (!isRequestActive()) {
 				throw new IllegalStateException(
 						"Cannot set request attribute - request is not active anymore!");
 			}
+			// 设则 置
 			this.request.setAttribute(name, value);
 		}
 		else {
+			// 作用域为 session 级别
 			HttpSession session = obtainSession();
+			// 移除之前的旧值
 			this.sessionAttributesToUpdate.remove(name);
+			// 设置新值
 			session.setAttribute(name, value);
 		}
 	}
