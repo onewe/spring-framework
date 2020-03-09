@@ -47,13 +47,21 @@ import org.springframework.web.context.request.WebRequest;
  * @since 3.1
  */
 public class SessionAttributesHandler {
-
+	/**
+	 * 属性名称集合  也就是 @SessionAttributes 注解中的 value
+	 * */
 	private final Set<String> attributeNames = new HashSet<>();
-
+	/***
+	 * 属性类型集合 也就是 @SessionAttributes 注解中的 types
+	 * */
 	private final Set<Class<?>> attributeTypes = new HashSet<>();
-
+	/***
+	 * 已知属性名称集合 所有保存过的属性名
+	 * */
 	private final Set<String> knownAttributeNames = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
-
+	/***
+	 * 用于操作 session 的工具
+	 * */
 	private final SessionAttributeStore sessionAttributeStore;
 
 
@@ -68,11 +76,14 @@ public class SessionAttributesHandler {
 		Assert.notNull(sessionAttributeStore, "SessionAttributeStore may not be null");
 		this.sessionAttributeStore = sessionAttributeStore;
 
+		// 查找 @SessionAttributes 注解
 		SessionAttributes ann = AnnotatedElementUtils.findMergedAnnotation(handlerType, SessionAttributes.class);
 		if (ann != null) {
+			// 加入到集合
 			Collections.addAll(this.attributeNames, ann.names());
 			Collections.addAll(this.attributeTypes, ann.types());
 		}
+		// 加入到集合
 		this.knownAttributeNames.addAll(this.attributeNames);
 	}
 
@@ -95,6 +106,7 @@ public class SessionAttributesHandler {
 	 * @param attributeType the type for the attribute
 	 */
 	public boolean isHandlerSessionAttribute(String attributeName, Class<?> attributeType) {
+		// 判断 该属性名 是否支持缓存
 		Assert.notNull(attributeName, "Attribute name must not be null");
 		if (this.attributeNames.contains(attributeName) || this.attributeTypes.contains(attributeType)) {
 			this.knownAttributeNames.add(attributeName);
@@ -113,6 +125,7 @@ public class SessionAttributesHandler {
 	 */
 	public void storeAttributes(WebRequest request, Map<String, ?> attributes) {
 		attributes.forEach((name, value) -> {
+			// 存储之前先判断是否支持
 			if (value != null && isHandlerSessionAttribute(name, value.getClass())) {
 				this.sessionAttributeStore.storeAttribute(request, name, value);
 			}

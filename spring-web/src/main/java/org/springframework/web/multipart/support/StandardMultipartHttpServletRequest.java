@@ -95,20 +95,26 @@ public class StandardMultipartHttpServletRequest extends AbstractMultipartHttpSe
 			Collection<Part> parts = request.getParts();
 			this.multipartParameterNames = new LinkedHashSet<>(parts.size());
 			MultiValueMap<String, MultipartFile> files = new LinkedMultiValueMap<>(parts.size());
+			// 遍历 所有 files
 			for (Part part : parts) {
+				// 获取请求头
 				String headerValue = part.getHeader(HttpHeaders.CONTENT_DISPOSITION);
 				ContentDisposition disposition = ContentDisposition.parse(headerValue);
+				// 获取文件名
 				String filename = disposition.getFilename();
 				if (filename != null) {
 					if (filename.startsWith("=?") && filename.endsWith("?=")) {
 						filename = MimeDelegate.decode(filename);
 					}
+					// 添加到集合中
 					files.add(part.getName(), new StandardMultipartFile(part, filename));
 				}
 				else {
+					// 添加到名称集合中
 					this.multipartParameterNames.add(part.getName());
 				}
 			}
+			// 添加到 linkHashMap
 			setMultipartFiles(files);
 		}
 		catch (Throwable ex) {

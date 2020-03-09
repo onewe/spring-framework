@@ -122,6 +122,7 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 
 	@Override
 	public boolean isMultipart(HttpServletRequest request) {
+		// 判断是 POST 请求并且 有 multipart 请求头
 		return ServletFileUpload.isMultipartContent(request);
 	}
 
@@ -153,9 +154,11 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 	 * @throws MultipartException if multipart resolution failed.
 	 */
 	protected MultipartParsingResult parseRequest(HttpServletRequest request) throws MultipartException {
+		// 检测编码
 		String encoding = determineEncoding(request);
 		FileUpload fileUpload = prepareFileUpload(encoding);
 		try {
+			// 解析文件
 			List<FileItem> fileItems = ((ServletFileUpload) fileUpload).parseRequest(request);
 			return parseFileItems(fileItems, encoding);
 		}

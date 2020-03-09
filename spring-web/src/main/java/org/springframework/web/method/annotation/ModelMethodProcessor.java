@@ -41,6 +41,7 @@ public class ModelMethodProcessor implements HandlerMethodArgumentResolver, Hand
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
+		// 判断参数是否是 Model
 		return Model.class.isAssignableFrom(parameter.getParameterType());
 	}
 
@@ -50,11 +51,13 @@ public class ModelMethodProcessor implements HandlerMethodArgumentResolver, Hand
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
 
 		Assert.state(mavContainer != null, "ModelAndViewContainer is required for model exposure");
+		// 直接从 值容器中 获取 model
 		return mavContainer.getModel();
 	}
 
 	@Override
 	public boolean supportsReturnType(MethodParameter returnType) {
+		// 判断返回值是否是 Model
 		return Model.class.isAssignableFrom(returnType.getParameterType());
 	}
 
@@ -66,6 +69,7 @@ public class ModelMethodProcessor implements HandlerMethodArgumentResolver, Hand
 			return;
 		}
 		else if (returnValue instanceof Model) {
+			// 把model 中的 加入到 modelMap中去
 			mavContainer.addAllAttributes(((Model) returnValue).asMap());
 		}
 		else {

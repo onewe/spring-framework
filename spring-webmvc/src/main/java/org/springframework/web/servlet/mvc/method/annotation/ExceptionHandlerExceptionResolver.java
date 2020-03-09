@@ -254,14 +254,17 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
 	@Override
 	public void afterPropertiesSet() {
+		// 初始化,全局 advice
 		// Do this first, it may add ResponseBodyAdvice beans
 		initExceptionHandlerAdviceCache();
 
 		if (this.argumentResolvers == null) {
+			// 创建默认处理器
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultArgumentResolvers();
 			this.argumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
 		if (this.returnValueHandlers == null) {
+			// 创建默认返回值处理器
 			List<HandlerMethodReturnValueHandler> handlers = getDefaultReturnValueHandlers();
 			this.returnValueHandlers = new HandlerMethodReturnValueHandlerComposite().addHandlers(handlers);
 		}
@@ -271,13 +274,15 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		if (getApplicationContext() == null) {
 			return;
 		}
-
+		// 获取容器中的所有 adviceBean
 		List<ControllerAdviceBean> adviceBeans = ControllerAdviceBean.findAnnotatedBeans(getApplicationContext());
+		// 遍历
 		for (ControllerAdviceBean adviceBean : adviceBeans) {
 			Class<?> beanType = adviceBean.getBeanType();
 			if (beanType == null) {
 				throw new IllegalStateException("Unresolvable type for ControllerAdviceBean: " + adviceBean);
 			}
+			// 创建 ExceptionHandlerMethodResolver
 			ExceptionHandlerMethodResolver resolver = new ExceptionHandlerMethodResolver(beanType);
 			if (resolver.hasExceptionMappings()) {
 				this.exceptionHandlerAdviceCache.put(adviceBean, resolver);
@@ -397,9 +402,11 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using @ExceptionHandler " + exceptionHandlerMethod);
 			}
+			// 获取异常信息
 			Throwable cause = exception.getCause();
 			if (cause != null) {
 				// Expose cause as provided argument as well
+				// 执行处理器方法
 				exceptionHandlerMethod.invokeAndHandle(webRequest, mavContainer, exception, cause, handlerMethod);
 			}
 			else {

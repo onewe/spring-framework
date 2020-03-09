@@ -77,8 +77,11 @@ public class ViewResolverComposite implements ViewResolver, Ordered, Initializin
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		// 自动装配 ApplicationContextAware
 		for (ViewResolver viewResolver : this.viewResolvers) {
+			// 判断是否实现了 ApplicationContextAware
 			if (viewResolver instanceof ApplicationContextAware) {
+				// 注入
 				((ApplicationContextAware)viewResolver).setApplicationContext(applicationContext);
 			}
 		}
@@ -86,8 +89,11 @@ public class ViewResolverComposite implements ViewResolver, Ordered, Initializin
 
 	@Override
 	public void setServletContext(ServletContext servletContext) {
+		// 自动装配 servletContext
 		for (ViewResolver viewResolver : this.viewResolvers) {
+			// 判断是否实现了 ServletContextAware
 			if (viewResolver instanceof ServletContextAware) {
+				// 注入
 				((ServletContextAware)viewResolver).setServletContext(servletContext);
 			}
 		}
@@ -95,7 +101,10 @@ public class ViewResolverComposite implements ViewResolver, Ordered, Initializin
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		// 初始化,遍历所有视图解析器
 		for (ViewResolver viewResolver : this.viewResolvers) {
+			// 判断是否实现了 InitializingBean 接口
+			// 初始化
 			if (viewResolver instanceof InitializingBean) {
 				((InitializingBean) viewResolver).afterPropertiesSet();
 			}
@@ -105,7 +114,9 @@ public class ViewResolverComposite implements ViewResolver, Ordered, Initializin
 	@Override
 	@Nullable
 	public View resolveViewName(String viewName, Locale locale) throws Exception {
+		// 遍历解析器集合
 		for (ViewResolver viewResolver : this.viewResolvers) {
+			// 挨个解析 直到能解析出 view 为止
 			View view = viewResolver.resolveViewName(viewName, locale);
 			if (view != null) {
 				return view;

@@ -46,12 +46,14 @@ public interface AsyncWebRequest extends NativeWebRequest {
 	/**
 	 * Add a handler to invoke when an error occurred while concurrent
 	 * handling of a request.
+	 * 请求超时处理器
 	 * @since 5.0
 	 */
 	void addErrorHandler(Consumer<Throwable> exceptionHandler);
 
 	/**
 	 * Add a handler to invoke when request processing completes.
+	 * 请求完成处理器
 	 */
 	void addCompletionHandler(Runnable runnable);
 
@@ -67,6 +69,7 @@ public interface AsyncWebRequest extends NativeWebRequest {
 	 * Whether the request is in async mode following a call to {@link #startAsync()}.
 	 * Returns "false" if asynchronous processing never started, has completed,
 	 * or the request was dispatched for further processing.
+	 * 判断是否启动了异步
 	 */
 	boolean isAsyncStarted();
 
@@ -78,6 +81,7 @@ public interface AsyncWebRequest extends NativeWebRequest {
 
 	/**
 	 * Whether asynchronous processing has completed.
+	 * 判断异步是否处理完毕
 	 */
 	boolean isAsyncComplete();
 

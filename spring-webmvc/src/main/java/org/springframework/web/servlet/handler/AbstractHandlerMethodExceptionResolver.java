@@ -43,9 +43,11 @@ public abstract class AbstractHandlerMethodExceptionResolver extends AbstractHan
 		if (handler == null) {
 			return super.shouldApplyTo(request, null);
 		}
+		// 判断是否是 HandlerMethod
 		else if (handler instanceof HandlerMethod) {
 			HandlerMethod handlerMethod = (HandlerMethod) handler;
 			handler = handlerMethod.getBean();
+			// 交由父类处理
 			return super.shouldApplyTo(request, handler);
 		}
 		else {

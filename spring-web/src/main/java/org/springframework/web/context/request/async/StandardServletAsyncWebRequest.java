@@ -70,6 +70,7 @@ public class StandardServletAsyncWebRequest extends ServletWebRequest implements
 	/**
 	 * In Servlet 3 async processing, the timeout period begins after the
 	 * container processing thread has exited.
+	 * 设置超时时间
 	 */
 	@Override
 	public void setTimeout(Long timeout) {

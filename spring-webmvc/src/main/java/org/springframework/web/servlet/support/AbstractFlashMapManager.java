@@ -92,20 +92,25 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 	@Override
 	@Nullable
 	public final FlashMap retrieveAndUpdate(HttpServletRequest request, HttpServletResponse response) {
+		// 获取,如果有就返回,没有就返回
 		List<FlashMap> allFlashMaps = retrieveFlashMaps(request);
 		if (CollectionUtils.isEmpty(allFlashMaps)) {
 			return null;
 		}
-
+		// 获取过期的flashMap
 		List<FlashMap> mapsToRemove = getExpiredFlashMaps(allFlashMaps);
+		// 获取 与当前 request 匹配的 flashMap
 		FlashMap match = getMatchingFlashMap(allFlashMaps, request);
 		if (match != null) {
+			// 如果有匹配添加到集合
 			mapsToRemove.add(match);
 		}
-
+		// 判断 集合不为空
 		if (!mapsToRemove.isEmpty()) {
+			// 获取值
 			Object mutex = getFlashMapsMutex(request);
 			if (mutex != null) {
+				// 并发控制
 				synchronized (mutex) {
 					allFlashMaps = retrieveFlashMaps(request);
 					if (allFlashMaps != null) {
@@ -196,18 +201,22 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 		if (CollectionUtils.isEmpty(flashMap)) {
 			return;
 		}
-
+		// url decode 解码
 		String path = decodeAndNormalizePath(flashMap.getTargetRequestPath(), request);
+		// 设置请求路径
 		flashMap.setTargetRequestPath(path);
-
+		// 设置有效期
 		flashMap.startExpirationPeriod(getFlashMapTimeout());
-
+		// 获取加锁对象
 		Object mutex = getFlashMapsMutex(request);
 		if (mutex != null) {
+			// 并发控制
 			synchronized (mutex) {
+				// 模板方法 ,如果有就取回 否则就新建一个 allFlashMaps
 				List<FlashMap> allFlashMaps = retrieveFlashMaps(request);
 				allFlashMaps = (allFlashMaps != null ? allFlashMaps : new CopyOnWriteArrayList<>());
 				allFlashMaps.add(flashMap);
+				// 更新
 				updateFlashMaps(allFlashMaps, request, response);
 			}
 		}

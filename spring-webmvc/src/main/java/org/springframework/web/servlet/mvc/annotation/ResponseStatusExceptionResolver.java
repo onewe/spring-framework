@@ -72,12 +72,14 @@ public class ResponseStatusExceptionResolver extends AbstractHandlerExceptionRes
 			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex) {
 
 		try {
+			// 判断异常类型
 			if (ex instanceof ResponseStatusException) {
 				return resolveResponseStatusException((ResponseStatusException) ex, request, response, handler);
 			}
-
+			// 获取注解
 			ResponseStatus status = AnnotatedElementUtils.findMergedAnnotation(ex.getClass(), ResponseStatus.class);
 			if (status != null) {
+				// send error
 				return resolveResponseStatus(status, request, response, handler, ex);
 			}
 

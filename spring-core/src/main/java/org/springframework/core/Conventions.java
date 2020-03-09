@@ -65,26 +65,32 @@ public final class Conventions {
 		Assert.notNull(value, "Value must not be null");
 		Class<?> valueClass;
 		boolean pluralize = false;
-
+		// 判断是否是 数组
 		if (value.getClass().isArray()) {
+			// 获取组合类型
 			valueClass = value.getClass().getComponentType();
 			pluralize = true;
 		}
+		// 判断是否是集合
 		else if (value instanceof Collection) {
 			Collection<?> collection = (Collection<?>) value;
 			if (collection.isEmpty()) {
 				throw new IllegalArgumentException(
 						"Cannot generate variable name for an empty Collection");
 			}
+			// 获取集合中的 第一个元素
 			Object valueToCheck = peekAhead(collection);
+			// 获取第一个元素的 类型
 			valueClass = getClassForValue(valueToCheck);
 			pluralize = true;
 		}
 		else {
+			// 获取返回值的 类型
 			valueClass = getClassForValue(value);
 		}
-
+		// 获取shortName
 		String name = ClassUtils.getShortNameAsProperty(valueClass);
+		// 如果是 集合 加上后缀 List
 		return (pluralize ? pluralize(name) : name);
 	}
 
@@ -168,23 +174,26 @@ public final class Conventions {
 	 */
 	public static String getVariableNameForReturnType(Method method, Class<?> resolvedType, @Nullable Object value) {
 		Assert.notNull(method, "Method must not be null");
-
+		// 判断 是否是 object
 		if (Object.class == resolvedType) {
 			if (value == null) {
 				throw new IllegalArgumentException(
 						"Cannot generate variable name for an Object return type with null value");
 			}
+			// 获取变量名
 			return getVariableName(value);
 		}
 
 		Class<?> valueClass;
 		boolean pluralize = false;
 		String reactiveSuffix = "";
-
+		// 判断是否是 数组
 		if (resolvedType.isArray()) {
+			// 获取类型
 			valueClass = resolvedType.getComponentType();
 			pluralize = true;
 		}
+		// 判断是否是集合
 		else if (Collection.class.isAssignableFrom(resolvedType)) {
 			valueClass = ResolvableType.forMethodReturnType(method).asCollection().resolveGeneric();
 			if (valueClass == null) {
@@ -197,7 +206,9 @@ public final class Conventions {
 					throw new IllegalArgumentException("Cannot generate variable name " +
 							"for non-typed Collection return type and an empty Collection value");
 				}
+				// 获取集合中的 第一个元素
 				Object valueToCheck = peekAhead(collection);
+				// 获取类型信息
 				valueClass = getClassForValue(valueToCheck);
 			}
 			pluralize = true;
@@ -210,7 +221,7 @@ public final class Conventions {
 				valueClass = ResolvableType.forMethodReturnType(method).getGeneric().toClass();
 			}
 		}
-
+		// 获取 shortName
 		String name = ClassUtils.getShortNameAsProperty(valueClass);
 		return (pluralize ? pluralize(name) : name + reactiveSuffix);
 	}

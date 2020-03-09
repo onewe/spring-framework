@@ -274,28 +274,32 @@ public final class WebAsyncManager {
 
 		Assert.notNull(webAsyncTask, "WebAsyncTask must not be null");
 		Assert.state(this.asyncWebRequest != null, "AsyncWebRequest must not be null");
-
+		// 获取超时时间
 		Long timeout = webAsyncTask.getTimeout();
 		if (timeout != null) {
+			// 设置超时
 			this.asyncWebRequest.setTimeout(timeout);
 		}
-
+		// 获取线程池
 		AsyncTaskExecutor executor = webAsyncTask.getExecutor();
 		if (executor != null) {
 			this.taskExecutor = executor;
 		}
 		else {
+			// 记录日志
 			logExecutorWarning();
 		}
-
+		// 创建集合
 		List<CallableProcessingInterceptor> interceptors = new ArrayList<>();
+		// 添加拦截器
 		interceptors.add(webAsyncTask.getInterceptor());
 		interceptors.addAll(this.callableInterceptors.values());
 		interceptors.add(timeoutCallableInterceptor);
 
 		final Callable<?> callable = webAsyncTask.getCallable();
+		// 创建拦截器链
 		final CallableInterceptorChain interceptorChain = new CallableInterceptorChain(interceptors);
-
+		// 添加超时处理器
 		this.asyncWebRequest.addTimeoutHandler(() -> {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Async request timeout for " + formatRequestUri());
@@ -305,7 +309,7 @@ public final class WebAsyncManager {
 				setConcurrentResultAndDispatch(result);
 			}
 		});
-
+		// 添加错误处理器
 		this.asyncWebRequest.addErrorHandler(ex -> {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Async request error for " + formatRequestUri() + ": " + ex);
@@ -314,13 +318,16 @@ public final class WebAsyncManager {
 			result = (result != CallableProcessingInterceptor.RESULT_NONE ? result : ex);
 			setConcurrentResultAndDispatch(result);
 		});
-
+		// 添加请求完成处理器
 		this.asyncWebRequest.addCompletionHandler(() ->
 				interceptorChain.triggerAfterCompletion(this.asyncWebRequest, callable));
 
+		// 调用 BeforeHandling
 		interceptorChain.applyBeforeConcurrentHandling(this.asyncWebRequest, callable);
+		// 启动异步处理
 		startAsyncProcessing(processingContext);
 		try {
+			// 提交任务
 			Future<?> future = this.taskExecutor.submit(() -> {
 				Object result = null;
 				try {
@@ -331,6 +338,7 @@ public final class WebAsyncManager {
 					result = ex;
 				}
 				finally {
+					// 调用后置方法
 					result = interceptorChain.applyPostProcess(this.asyncWebRequest, callable, result);
 				}
 				setConcurrentResultAndDispatch(result);

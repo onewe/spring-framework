@@ -135,9 +135,12 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	@Nullable
 	public ModelAndView resolveException(
 			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex) {
-
+		// 判断处理器可以处理哪些异常
 		if (shouldApplyTo(request, handler)) {
+			// 预处理 response
+			// 禁用缓存
 			prepareResponse(ex, response);
+			// 解析异常 模板方法
 			ModelAndView result = doResolveException(request, response, handler, ex);
 			if (result != null) {
 				// Print debug message when warn logger is not enabled.
@@ -145,6 +148,7 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 					logger.debug("Resolved [" + ex + "]" + (result.isEmpty() ? "" : " to " + result));
 				}
 				// Explicitly configured warn logger in logException method.
+				// 记录异常
 				logException(ex, request);
 			}
 			return result;

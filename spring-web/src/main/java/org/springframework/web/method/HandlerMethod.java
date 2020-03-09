@@ -63,7 +63,9 @@ public class HandlerMethod {
 
 	/** Logger that is available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
-
+	/***
+	 * 方法所对应的对象
+	 * */
 	private final Object bean;
 
 	@Nullable
@@ -72,7 +74,9 @@ public class HandlerMethod {
 	private final Class<?> beanType;
 
 	private final Method method;
-
+	/**
+	 * 目标方法,被桥接的方法
+	 * */
 	private final Method bridgedMethod;
 
 	private final MethodParameter[] parameters;
@@ -410,9 +414,13 @@ public class HandlerMethod {
 
 	@Nullable
 	protected static Object findProvidedArgument(MethodParameter parameter, @Nullable Object... providedArgs) {
+		// 判断提供的参数是否为空
 		if (!ObjectUtils.isEmpty(providedArgs)) {
+			// 遍历提供的参数
 			for (Object providedArg : providedArgs) {
+				// 判断类型是否一致
 				if (parameter.getParameterType().isInstance(providedArg)) {
+					// 返回参数
 					return providedArg;
 				}
 			}

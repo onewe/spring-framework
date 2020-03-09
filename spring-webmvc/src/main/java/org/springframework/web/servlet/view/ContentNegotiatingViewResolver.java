@@ -182,33 +182,41 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 
 	@Override
 	protected void initServletContext(ServletContext servletContext) {
+		// 从容器中获取 所有 ViewResolver 对象
 		Collection<ViewResolver> matchingBeans =
 				BeanFactoryUtils.beansOfTypeIncludingAncestors(obtainApplicationContext(), ViewResolver.class).values();
 		if (this.viewResolvers == null) {
 			this.viewResolvers = new ArrayList<>(matchingBeans.size());
 			for (ViewResolver viewResolver : matchingBeans) {
 				if (this != viewResolver) {
+					// 添加到 视图集合中去
 					this.viewResolvers.add(viewResolver);
 				}
 			}
 		}
 		else {
+			// 遍历所有视图
 			for (int i = 0; i < this.viewResolvers.size(); i++) {
 				ViewResolver vr = this.viewResolvers.get(i);
+				// 判断集合是否包含
 				if (matchingBeans.contains(vr)) {
 					continue;
 				}
+				// 如果是手动注册的
+				// 从容器中创建此bean
 				String name = vr.getClass().getName() + i;
 				obtainApplicationContext().getAutowireCapableBeanFactory().initializeBean(vr, name);
 			}
 
 		}
+		// 排序
 		AnnotationAwareOrderComparator.sort(this.viewResolvers);
 		this.cnmFactoryBean.setServletContext(servletContext);
 	}
 
 	@Override
 	public void afterPropertiesSet() {
+		// 创建 contentNegotiationManager 对象
 		if (this.contentNegotiationManager == null) {
 			this.contentNegotiationManager = this.cnmFactoryBean.build();
 		}
@@ -223,9 +231,12 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 	public View resolveViewName(String viewName, Locale locale) throws Exception {
 		RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
 		Assert.state(attrs instanceof ServletRequestAttributes, "No current ServletRequestAttributes");
+		// 获取 content-type
 		List<MediaType> requestedMediaTypes = getMediaTypes(((ServletRequestAttributes) attrs).getRequest());
 		if (requestedMediaTypes != null) {
+			// 通过 content-type 匹配合适的视图集合
 			List<View> candidateViews = getCandidateViews(viewName, locale, requestedMediaTypes);
+			// 获取 最佳匹配的 视图
 			View bestView = getBestView(candidateViews, requestedMediaTypes, attrs);
 			if (bestView != null) {
 				return bestView;
@@ -239,6 +250,7 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using 406 NOT_ACCEPTABLE" + mediaTypeInfo);
 			}
+			// 返回 406 视图
 			return NOT_ACCEPTABLE_VIEW;
 		}
 		else {
@@ -307,23 +319,32 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 		if (this.viewResolvers != null) {
 			Assert.state(this.contentNegotiationManager != null, "No ContentNegotiationManager set");
 			for (ViewResolver viewResolver : this.viewResolvers) {
+				// 通过视图名 和 locale 解析视图
 				View view = viewResolver.resolveViewName(viewName, locale);
 				if (view != null) {
+					// 添加到集合
 					candidateViews.add(view);
 				}
+				// 遍历 content-type
 				for (MediaType requestedMediaType : requestedMediaTypes) {
+					// 获取 后缀名
 					List<String> extensions = this.contentNegotiationManager.resolveFileExtensions(requestedMediaType);
 					for (String extension : extensions) {
+						// 拼接视图字符串
 						String viewNameWithExtension = viewName + '.' + extension;
+						// 解析视图
 						view = viewResolver.resolveViewName(viewNameWithExtension, locale);
 						if (view != null) {
+							// 添加到集合
 							candidateViews.add(view);
 						}
 					}
 				}
 			}
 		}
+		// 判断 默认视图是否为空
 		if (!CollectionUtils.isEmpty(this.defaultViews)) {
+			// 添加默认视图到集合
 			candidateViews.addAll(this.defaultViews);
 		}
 		return candidateViews;
@@ -331,22 +352,31 @@ public class ContentNegotiatingViewResolver extends WebApplicationObjectSupport
 
 	@Nullable
 	private View getBestView(List<View> candidateViews, List<MediaType> requestedMediaTypes, RequestAttributes attrs) {
+		// 遍历所有匹配到的 视图对象
 		for (View candidateView : candidateViews) {
+			// 判断是否是 SmartView 判断是否是 redirect 视图
 			if (candidateView instanceof SmartView) {
+				// 强转
 				SmartView smartView = (SmartView) candidateView;
+				// 判断是否是重定向 视图
 				if (smartView.isRedirectView()) {
 					return candidateView;
 				}
 			}
 		}
+		// 判断所有媒体类型
 		for (MediaType mediaType : requestedMediaTypes) {
+			// 遍历所有 匹配到的视图
 			for (View candidateView : candidateViews) {
+				// 判断 content-type 是否为空
 				if (StringUtils.hasText(candidateView.getContentType())) {
+					// 解析 content-type
 					MediaType candidateContentType = MediaType.parseMediaType(candidateView.getContentType());
 					if (mediaType.isCompatibleWith(candidateContentType)) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Selected '" + mediaType + "' given " + requestedMediaTypes);
 						}
+						// 把视图放入到 request 中去
 						attrs.setAttribute(View.SELECTED_CONTENT_TYPE, mediaType, RequestAttributes.SCOPE_REQUEST);
 						return candidateView;
 					}

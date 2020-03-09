@@ -170,21 +170,29 @@ public abstract class AbstractCachingViewResolver extends WebApplicationObjectSu
 	@Override
 	@Nullable
 	public View resolveViewName(String viewName, Locale locale) throws Exception {
+		// 判断是否缓存
+		// 非缓存 创建一个视图
 		if (!isCache()) {
 			return createView(viewName, locale);
 		}
 		else {
+			// 获取缓存key
 			Object cacheKey = getCacheKey(viewName, locale);
+			// 从缓存中获取 key
 			View view = this.viewAccessCache.get(cacheKey);
 			if (view == null) {
+				// 加锁
 				synchronized (this.viewCreationCache) {
+					// 双重检查
 					view = this.viewCreationCache.get(cacheKey);
 					if (view == null) {
 						// Ask the subclass to create the View object.
+						// 创建一个视图
 						view = createView(viewName, locale);
 						if (view == null && this.cacheUnresolved) {
 							view = UNRESOLVED_VIEW;
 						}
+						// 加入到缓存中
 						if (view != null && this.cacheFilter.filter(view, viewName, locale)) {
 							this.viewAccessCache.put(cacheKey, view);
 							this.viewCreationCache.put(cacheKey, view);
@@ -226,13 +234,17 @@ public abstract class AbstractCachingViewResolver extends WebApplicationObjectSu
 	 * @param locale the locale for which the view object should be removed
 	 */
 	public void removeFromCache(String viewName, Locale locale) {
+		// 判断是否缓存
 		if (!isCache()) {
 			logger.warn("Caching is OFF (removal not necessary)");
 		}
 		else {
+			// 获取缓存的key
 			Object cacheKey = getCacheKey(viewName, locale);
 			Object cachedView;
+			// 加锁
 			synchronized (this.viewCreationCache) {
+				// 移除缓存
 				this.viewAccessCache.remove(cacheKey);
 				cachedView = this.viewCreationCache.remove(cacheKey);
 			}
@@ -250,6 +262,7 @@ public abstract class AbstractCachingViewResolver extends WebApplicationObjectSu
 	 */
 	public void clearCache() {
 		logger.debug("Clearing all views from the cache");
+		// 清空所有缓存
 		synchronized (this.viewCreationCache) {
 			this.viewAccessCache.clear();
 			this.viewCreationCache.clear();

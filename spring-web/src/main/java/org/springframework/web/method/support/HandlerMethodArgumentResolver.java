@@ -39,6 +39,9 @@ public interface HandlerMethodArgumentResolver {
 	 * @return {@code true} if this resolver supports the supplied parameter;
 	 * {@code false} otherwise
 	 */
+	/**
+	 * 判断参赛是否能够被解析
+	 * **/
 	boolean supportsParameter(MethodParameter parameter);
 
 	/**
@@ -56,6 +59,9 @@ public interface HandlerMethodArgumentResolver {
 	 * @return the resolved argument value, or {@code null} if not resolvable
 	 * @throws Exception in case of errors with the preparation of argument values
 	 */
+	/****
+	 * 解析参数
+	 * */
 	@Nullable
 	Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception;

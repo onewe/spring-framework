@@ -170,6 +170,7 @@ public class DefaultHandlerExceptionResolver extends AbstractHandlerExceptionRes
 			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex) {
 
 		try {
+			// 通过异常类型进行判断
 			if (ex instanceof HttpRequestMethodNotSupportedException) {
 				return handleHttpRequestMethodNotSupported(
 						(HttpRequestMethodNotSupportedException) ex, request, response, handler);
@@ -258,6 +259,7 @@ public class DefaultHandlerExceptionResolver extends AbstractHandlerExceptionRes
 		if (supportedMethods != null) {
 			response.setHeader("Allow", StringUtils.arrayToDelimitedString(supportedMethods, ", "));
 		}
+		// 405
 		response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, ex.getMessage());
 		return new ModelAndView();
 	}
@@ -277,7 +279,7 @@ public class DefaultHandlerExceptionResolver extends AbstractHandlerExceptionRes
 	 */
 	protected ModelAndView handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
 			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler) throws IOException {
-
+		// 415
 		response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
 		List<MediaType> mediaTypes = ex.getSupportedMediaTypes();
 		if (!CollectionUtils.isEmpty(mediaTypes)) {

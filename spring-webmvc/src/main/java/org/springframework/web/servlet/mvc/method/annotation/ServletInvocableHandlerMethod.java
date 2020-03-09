@@ -102,25 +102,30 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 */
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
-
+		// 执行方法
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+		// 设置响应状态
 		setResponseStatus(webRequest);
 
 		if (returnValue == null) {
 			if (isRequestNotModified(webRequest) || getResponseStatus() != null || mavContainer.isRequestHandled()) {
+				// 禁用内容缓存 如果有必要
 				disableContentCachingIfNecessary(webRequest);
+				// 设置 请求已经处理完毕
 				mavContainer.setRequestHandled(true);
 				return;
 			}
 		}
+		// 如果 @ResponseStatus 中的 reason 有值 则 设置 请求已经处理完毕
 		else if (StringUtils.hasText(getResponseStatusReason())) {
 			mavContainer.setRequestHandled(true);
 			return;
 		}
-
+		// 设置请求未处理完毕
 		mavContainer.setRequestHandled(false);
 		Assert.state(this.returnValueHandlers != null, "No return value handlers");
 		try {
+			// 继续处理返回值
 			this.returnValueHandlers.handleReturnValue(
 					returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
 		}
@@ -136,14 +141,18 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	 * Set the response status according to the {@link ResponseStatus} annotation.
 	 */
 	private void setResponseStatus(ServletWebRequest webRequest) throws IOException {
+		// 获取 http 状态
 		HttpStatus status = getResponseStatus();
 		if (status == null) {
 			return;
 		}
-
+		// 获取 response 对象
 		HttpServletResponse response = webRequest.getResponse();
+		// 如果 response 对象 不为空
 		if (response != null) {
+			// 获取 reason
 			String reason = getResponseStatusReason();
+			// 如果不为空 设置错误信息
 			if (StringUtils.hasText(reason)) {
 				response.sendError(status.value(), reason);
 			}
@@ -151,7 +160,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 				response.setStatus(status.value());
 			}
 		}
-
+		// 放入到 request 中去
 		// To be picked up by RedirectView
 		webRequest.getRequest().setAttribute(View.RESPONSE_STATUS_ATTRIBUTE, status);
 	}

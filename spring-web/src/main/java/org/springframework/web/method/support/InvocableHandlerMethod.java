@@ -48,9 +48,13 @@ public class InvocableHandlerMethod extends HandlerMethod {
 
 	@Nullable
 	private WebDataBinderFactory dataBinderFactory;
-
+	/***
+	 * 参数解析
+	 * */
 	private HandlerMethodArgumentResolverComposite resolvers = new HandlerMethodArgumentResolverComposite();
-
+	/***
+	 * 用于解析参数名
+	 * */
 	private ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
 
 
@@ -130,7 +134,7 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	@Nullable
 	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
-
+		// 获取方法参数  providedArgs 未提供
 		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Arguments: " + Arrays.toString(args));
@@ -146,24 +150,29 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 */
 	protected Object[] getMethodArgumentValues(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
-
+		// 获取父类的 MethodParameter
 		MethodParameter[] parameters = getMethodParameters();
+		// 如果为空 则返回 空数组
 		if (ObjectUtils.isEmpty(parameters)) {
 			return EMPTY_ARGS;
 		}
-
+		// 创建数组
 		Object[] args = new Object[parameters.length];
 		for (int i = 0; i < parameters.length; i++) {
 			MethodParameter parameter = parameters[i];
+			// 初始化 ParameterNameDiscovery
 			parameter.initParameterNameDiscovery(this.parameterNameDiscoverer);
+			// 获取提供的参数
 			args[i] = findProvidedArgument(parameter, providedArgs);
 			if (args[i] != null) {
 				continue;
 			}
+			// 判断解析器是否支持该参数
 			if (!this.resolvers.supportsParameter(parameter)) {
 				throw new IllegalStateException(formatArgumentError(parameter, "No suitable resolver"));
 			}
 			try {
+				// 解析参数
 				args[i] = this.resolvers.resolveArgument(parameter, mavContainer, request, this.dataBinderFactory);
 			}
 			catch (Exception ex) {
@@ -174,9 +183,11 @@ public class InvocableHandlerMethod extends HandlerMethod {
 						logger.debug(formatArgumentError(parameter, exMsg));
 					}
 				}
+				// 抛出异常
 				throw ex;
 			}
 		}
+		// 返回参数
 		return args;
 	}
 
@@ -185,8 +196,10 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 */
 	@Nullable
 	protected Object doInvoke(Object... args) throws Exception {
+		// 获取原方法,并设则权限为 public
 		ReflectionUtils.makeAccessible(getBridgedMethod());
 		try {
+			// 执行方法
 			return getBridgedMethod().invoke(getBean(), args);
 		}
 		catch (IllegalArgumentException ex) {

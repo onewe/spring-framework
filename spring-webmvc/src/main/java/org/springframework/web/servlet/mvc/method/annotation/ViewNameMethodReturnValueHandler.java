@@ -71,20 +71,24 @@ public class ViewNameMethodReturnValueHandler implements HandlerMethodReturnValu
 	@Override
 	public boolean supportsReturnType(MethodParameter returnType) {
 		Class<?> paramType = returnType.getParameterType();
+		// 获取返回值类型,如果是 void 或者是字符串
 		return (void.class == paramType || CharSequence.class.isAssignableFrom(paramType));
 	}
 
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-
+		// 判断是否是字符串
 		if (returnValue instanceof CharSequence) {
 			String viewName = returnValue.toString();
+			// 设置视图名
 			mavContainer.setViewName(viewName);
+			// 判断是否是转发 redirect: 开头
 			if (isRedirectViewName(viewName)) {
 				mavContainer.setRedirectModelScenario(true);
 			}
 		}
+		// 如果不为空 并且 也不为字符串  抛出异常
 		else if (returnValue != null) {
 			// should not happen
 			throw new UnsupportedOperationException("Unexpected return type: " +

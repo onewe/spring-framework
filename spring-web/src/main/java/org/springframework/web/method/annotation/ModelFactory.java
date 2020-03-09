@@ -100,17 +100,22 @@ public final class ModelFactory {
 	 */
 	public void initModel(NativeWebRequest request, ModelAndViewContainer container, HandlerMethod handlerMethod)
 			throws Exception {
-
+		// 从 session 中获取 sessionAttributes
 		Map<String, ?> sessionAttributes = this.sessionAttributesHandler.retrieveAttributes(request);
+		// 合并到 model 中去
 		container.mergeAttributes(sessionAttributes);
+
+		// 执行 带有@ModelAttribute注解的方法 并把值设置到 model 中去
 		invokeModelAttributeMethods(request, container);
 
 		for (String name : findSessionAttributeArguments(handlerMethod)) {
+			// 判断容器中是否有 session 中的值
 			if (!container.containsAttribute(name)) {
 				Object value = this.sessionAttributesHandler.retrieveAttribute(request, name);
 				if (value == null) {
 					throw new HttpSessionRequiredException("Expected session attribute '" + name + "'", name);
 				}
+				// 设置到 model 中
 				container.addAttribute(name, value);
 			}
 		}
@@ -125,21 +130,27 @@ public final class ModelFactory {
 
 		while (!this.modelMethods.isEmpty()) {
 			InvocableHandlerMethod modelMethod = getNextModelMethod(container).getHandlerMethod();
+			// 获取方法上的注解
 			ModelAttribute ann = modelMethod.getMethodAnnotation(ModelAttribute.class);
 			Assert.state(ann != null, "No ModelAttribute annotation");
+			// 判断 model 中是否包含 注解名称
 			if (container.containsAttribute(ann.name())) {
 				if (!ann.binding()) {
 					container.setBindingDisabled(ann.name());
 				}
 				continue;
 			}
-
+			// 执行 方法
 			Object returnValue = modelMethod.invokeForRequest(request, container);
+			// 判断方法的返回值是否是 void
 			if (!modelMethod.isVoid()){
+				// 获取返回值的名称
 				String returnValueName = getNameForReturnValue(returnValue, modelMethod.getReturnType());
+				// 如果未绑定 加入到集合中
 				if (!ann.binding()) {
 					container.setBindingDisabled(returnValueName);
 				}
+				// 如果不包含 加入到集合中
 				if (!container.containsAttribute(returnValueName)) {
 					container.addAttribute(returnValueName, returnValue);
 				}
@@ -184,14 +195,19 @@ public final class ModelFactory {
 	 * @throws Exception if creating BindingResult attributes fails
 	 */
 	public void updateModel(NativeWebRequest request, ModelAndViewContainer container) throws Exception {
+		// 从容器中huqou 默认的model
 		ModelMap defaultModel = container.getDefaultModel();
+		// 判断 sessionAttribute 是否完成
+		// 如果完成,清理属性值
 		if (container.getSessionStatus().isComplete()){
 			this.sessionAttributesHandler.cleanupAttributes(request);
 		}
 		else {
+			// 否则缓存
 			this.sessionAttributesHandler.storeAttributes(request, defaultModel);
 		}
 		if (!container.isRequestHandled() && container.getModel() == defaultModel) {
+			// 更新 model 中的值
 			updateBindingResult(request, defaultModel);
 		}
 	}
@@ -201,12 +217,19 @@ public final class ModelFactory {
 	 */
 	private void updateBindingResult(NativeWebRequest request, ModelMap model) throws Exception {
 		List<String> keyNames = new ArrayList<>(model.keySet());
+		// 遍历 model 中的 所有key
 		for (String name : keyNames) {
+			// 获取 value
 			Object value = model.get(name);
+			// 判断是否绑定
 			if (value != null && isBindingCandidate(name, value)) {
+				// 创建一个key
 				String bindingResultKey = BindingResult.MODEL_KEY_PREFIX + name;
+				// 判断是否包含
 				if (!model.containsAttribute(bindingResultKey)) {
+					// 创建 WebDataBinder
 					WebDataBinder dataBinder = this.dataBinderFactory.createBinder(request, value, name);
+					// 放入值
 					model.put(bindingResultKey, dataBinder.getBindingResult());
 				}
 			}
@@ -257,15 +280,21 @@ public final class ModelFactory {
 	 * @return the derived name (never {@code null} or empty String)
 	 */
 	public static String getNameForReturnValue(@Nullable Object returnValue, MethodParameter returnType) {
+		// 获取返回类型上的注解
 		ModelAttribute ann = returnType.getMethodAnnotation(ModelAttribute.class);
+		// 注解不为空
 		if (ann != null && StringUtils.hasText(ann.value())) {
+			// 直接返回 value
 			return ann.value();
 		}
 		else {
+			// 获取 返回类型的 中的 method
 			Method method = returnType.getMethod();
 			Assert.state(method != null, "No handler method");
+			// 获取 containingClass
 			Class<?> containingClass = returnType.getContainingClass();
 			Class<?> resolvedType = GenericTypeResolver.resolveReturnType(method, containingClass);
+			// 通过返回类型 获取名称
 			return Conventions.getVariableNameForReturnType(method, resolvedType, returnValue);
 		}
 	}
