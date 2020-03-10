@@ -97,6 +97,8 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 	/**
 	 * Initialize the root web application context.
+	 * 当容器初始化,比如tomcat之类的会先调用 contextInitialized 方法
+	 * 进行初始化listener
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
@@ -109,7 +111,9 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 */
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
+		// 关闭上下文
 		closeWebApplicationContext(event.getServletContext());
+		// 获取容器中的 DisposableBean destroy
 		ContextCleanupListener.cleanupAttributes(event.getServletContext());
 	}
 
