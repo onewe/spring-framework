@@ -61,6 +61,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
 		super.onStartup(servletContext);
+		// 注册 servlet 到上下问
 		registerDispatcherServlet(servletContext);
 	}
 
@@ -76,16 +77,18 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	 * @param servletContext the context to register the servlet against
 	 */
 	protected void registerDispatcherServlet(ServletContext servletContext) {
+		// 获取 servlet 名称
 		String servletName = getServletName();
 		Assert.hasLength(servletName, "getServletName() must not return null or empty");
-
+		// 创建 上下文
 		WebApplicationContext servletAppContext = createServletApplicationContext();
 		Assert.notNull(servletAppContext, "createServletApplicationContext() must not return null");
-
+		// 创建 FrameworkServlet
 		FrameworkServlet dispatcherServlet = createDispatcherServlet(servletAppContext);
 		Assert.notNull(dispatcherServlet, "createDispatcherServlet(WebApplicationContext) must not return null");
+		// 初始化 getServletApplicationContextInitializers 默认为空实现
 		dispatcherServlet.setContextInitializers(getServletApplicationContextInitializers());
-
+		// 动态添加 servlet
 		ServletRegistration.Dynamic registration = servletContext.addServlet(servletName, dispatcherServlet);
 		if (registration == null) {
 			throw new IllegalStateException("Failed to register servlet with name '" + servletName + "'. " +
@@ -95,14 +98,15 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 		registration.setLoadOnStartup(1);
 		registration.addMapping(getServletMappings());
 		registration.setAsyncSupported(isAsyncSupported());
-
+		// 获取所有 filter
 		Filter[] filters = getServletFilters();
 		if (!ObjectUtils.isEmpty(filters)) {
 			for (Filter filter : filters) {
+				// 注册 filter
 				registerServletFilter(servletContext, filter);
 			}
 		}
-
+		// 空实现
 		customizeRegistration(registration);
 	}
 
@@ -183,7 +187,9 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	 * @return the filter registration
 	 */
 	protected FilterRegistration.Dynamic registerServletFilter(ServletContext servletContext, Filter filter) {
+		// 获取 filter 名称
 		String filterName = Conventions.getVariableName(filter);
+		// 动态添加 filter
 		Dynamic registration = servletContext.addFilter(filterName, filter);
 
 		if (registration == null) {
@@ -193,12 +199,14 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 					throw new IllegalStateException("Failed to register filter with name '" + filterName + "'. " +
 							"Check if there is another filter registered under the same name.");
 				}
+				// 注册 尝试 100 次
 				registration = servletContext.addFilter(filterName + "#" + counter, filter);
 				counter++;
 			}
 		}
-
+		// 判断是否支持异步
 		registration.setAsyncSupported(isAsyncSupported());
+		// 添加映射
 		registration.addMappingForServletNames(getDispatcherTypes(), false, getServletName());
 		return registration;
 	}
